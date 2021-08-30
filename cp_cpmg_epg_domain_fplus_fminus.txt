@@ -1,0 +1,57 @@
+
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!   THE SOFTWARE WAS PROGRAMMED ON A LINUX PLATFORM, but also runs with Windows-based Matlab.   !!!
+!!!   Take the Matlab Editor (or maybe Wordpad ...) for editing and viewing.                      !!!
+!!!   Or re-saving the code on a Windows platform should also work and/or may be beneficial.      !!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+% [F0_vector,Xi_F,Xi_Z,Xi_F_all,Xi_Z_all] = cp_cpmg_epg_domain_fplus_fminus (N,alpha,ESP,T1,T2)
+% 
+% Calculates the Extended Phase Graph (EPG) over one TR / one echo train for multi spin echo (multi SE) sequences obeying the Carr-Purcell (CP) or Carr-Purcell-Meiboom-Gill (CPMG) conditions
+% The particular type (CP/CPMG) of the (idealized) spin echo sequence is specified in the hard coded settings below
+% Common CPMG based imaging sequences have acronyms such as SE, TSE, FSE or RARE.
+% This code uses the Fourier based EPG domains F+(+k), F-(-k), Z(+k), see the mentioned review paper below
+% 
+% IN :  N    : Number of Repetitions of RF refocusing flip angles (= number of RF refocusing pulses for one given flip angle alpha)
+%       alpha: Constant flip angle or flip angle array of RF refocusing pulses in deg to be repeated N times
+%       ESP  : Echo spacing (or refocusing RF spacing), same unit as T1,T2
+%       T1   : Longitudinal relaxation time, same unit as ESP,T2
+%       T2   : Transverse relaxation time, same unit as ESP,T1
+% 
+% OUT:  F0_vector: Vector of resulting F0 states ("echo intensities")
+%       Xi_F     : State evolution matrix of all transverse F states at each echo time (only the states generating the primary pathways that can only be measured)
+%       Xi_Z     : State evolution matrix of all longitudinal Z states at each echo time (only the states generating the primary pathways that can only be measured)
+%       Xi_F_all : State evolution matrix of all transverse F states after each refocusing pulse and at each echo time (in alternating order, includes also the 'hidden' secondary pathway states - see e.g. EPG-R)
+%       Xi_Z_all : State evolution matrix of all longitudinal Z states after each refocusing pulse and at each echo time (in alternating order, includes also the 'hidden' secondary pathway states - see e.g. EPG-R)
+%
+% 
+% WRITTEN IN 2014 & 2015 by MATTHIAS WEIGEL         (epg@matthias-weigel.net)
+% Last modified in 07/2015   (Version 1.3)
+% 
+% Current affiliation: Radiological Physics, University Hospital Basel, Basel, Switzerland
+% Past    affiliation: Medical Physics, University Medical Center Freiburg, Freiburg, Germany
+% Past^2  affiliation: Biophysics, University of Wuerzburg, Wuerzburg, Germany
+% 
+% This code resides at "http://epg.matthias-weigel.net"
+% The code is based on the depiction and discussion of Extended Phase Graphs in the following publication ("EPG-R"):
+% 
+% Weigel M. J Magn Reson Imaging 2015; 41: 266-295. DOI: 10.1002/jmri.24619
+% "Extended Phase Graphs: Dephasing, RF Pulses, and Echoes - Pure and Simple" 
+% 
+% Studying and using this code means to acknowledge Matthias Weigel's months of cursing and weeping ...  ;-)
+% ... by citing the above mentioned review paper. Thank you :-) 
+% 
+% Intentionally built on my software "ssfp_epg_domain_fplus_fminus.m" (for FISP, FLASH, TRUFI, ...)
+% 
+% 
+% Further comments in regard to the code:
+% - For transverse magnetization, this code works in both the F+ and F- domain   --   see EPG-R, particularly the comments in the "software coding section"
+%   Therefore, both the F+(0) and F-(0) state are assessed (in the Omega matrix), however, only the F+(0) state is stored in the evolution matrix Xi (F-(0) is superfluous)
+% - This code is only roughly optimized for speed or for efficiency: a dedicated code (particularly in C++) would be much faster; and also quite shorter without the "gadgets"
+% - This code was roughly validated by comparing selected examples with ...
+%           ... known examples & the review paper EPG-R
+%           ... historical C++ code of mine
+%           ... the software "cp_cpmg_epg_domain_freal.m" for CP and CPMG based sequences
+
+
